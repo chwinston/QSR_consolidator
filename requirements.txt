@@ -1,0 +1,16 @@
+# AI QSR Consolidator - Python Dependencies
+
+# Core dependencies
+pandas>=2.0.0
+openpyxl>=3.1.0
+python-dotenv>=1.0.0
+
+# Optional: Faster hashing (recommended but not required)
+# xxhash>=3.0.0
+
+# Development dependencies (optional)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# ruff>=0.1.0
+# mypy>=1.0.0
