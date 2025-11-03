@@ -24,6 +24,7 @@
 - [claude-code - Deduplication Logic Fix](#claude-code---deduplication-logic-fix---2025-10-31-191000)
 - [claude-code - T1 QSR Data Analysis](#claude-code---t1-qsr-data-analysis---2025-11-03-080000)
 - [claude-code - KPI Quality File Enhancement](#claude-code---kpi-quality-file-enhancement---2025-11-03-083000)
+- [claude-code - Milestone Notes Reordering](#claude-code---milestone-notes-reordering---2025-11-03-124400)
 
 ---
 
@@ -374,6 +375,32 @@ python add_kpi_names.py  # Result: ✅ Updated column B with KPI names (95/95 ma
 
 **Status**: ✅ Completed - KPI_measurement_quality.xlsx enhanced with 3 new columns, 20-category taxonomy documented
 **Next Agent**: User for pivot analysis, or data-analyst for measurement standardization recommendations
+
+---
+
+### claude-code - Milestone Notes Reordering - 2025-11-03 12:44:00
+
+**Role**: Main refactoring agent reordering milestone notes columns
+**Task**: Reorder milestone notes columns to group with their corresponding milestones (similar to KPI notes grouping)
+**Detailed Summary**: [`refactor_summary_2.md`](execution_logs/refactor_summary_2.md)
+
+**Work Completed**:
+- Reordered field_mapping.csv to place 12 milestone notes immediately after their days_to_target fields
+- Updated both test and live consolidator files with new column order (preserved 35 existing rows in live)
+- All milestones now follow pattern: target → completed → days_to_target → notes
+- Test extraction successful (7 projects loaded from ClubOS QSR)
+- Verified milestone notes adjacency in output file (100 columns total)
+
+**Commands Run**:
+```bash
+git add -A && git commit -m "feat: Major enhancements..."  # Result: ✅ Pushed previous work to GitHub
+python reorder_milestone_notes.py  # Result: ✅ Reordered field_mapping.csv, all 12 milestones verified
+python update_consolidator_column_order.py  # Result: ✅ Both test/live consolidators updated
+python main.py --file "Real_QSR_submissions/T1/ClubOS/..." --business ClubOS --environment test  # Result: ✅ 7 projects extracted
+```
+
+**Status**: ✅ Completed - Milestone notes now grouped with their milestones, all consolidator files updated
+**Next Agent**: User to verify with production data, or continue with next feature development
 
 ---
 
