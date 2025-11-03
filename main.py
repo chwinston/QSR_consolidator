@@ -45,24 +45,29 @@ class AIQSRConsolidator:
         config_dir: Path = None,
         master_file: Path = None,
         archive_dir: Path = None,
-        log_level: str = "INFO"
+        log_level: str = "INFO",
+        environment: str = "test"
     ):
         """
         Initialize ETL consolidator.
 
         Args:
             config_dir: Configuration directory (default: ./config)
-            master_file: Master consolidator file (default: ./data/AI_QSR_Consolidator.xlsx)
-            archive_dir: Archive directory (default: ./data/archive)
+            master_file: Master consolidator file (default: ./data/{env}/AI_QSR_Consolidator.xlsx)
+            archive_dir: Archive directory (default: ./data/{env}/archive)
             log_level: Logging level
+            environment: Environment to use - 'test' or 'live' (default: test)
         """
-        # Set default paths
+        # Set default paths based on environment
         base_dir = Path(__file__).parent
+        env_dir = base_dir / "data" / environment
+
+        self.environment = environment
         self.config_dir = config_dir or base_dir / "config"
-        self.master_file = master_file or base_dir / "data" / "AI_QSR_Consolidator.xlsx"
-        self.archive_dir = archive_dir or base_dir / "data" / "archive"
-        self.log_dir = base_dir / "data" / "logs"
-        self.extraction_log = base_dir / "data" / "extraction_log.csv"
+        self.master_file = master_file or env_dir / "AI_QSR_Consolidator.xlsx"
+        self.archive_dir = archive_dir or env_dir / "archive"
+        self.log_dir = env_dir / "logs"
+        self.extraction_log = env_dir / "extraction_log.csv"
 
         # Initialize logger
         self.logger = ETLLogger(log_level=log_level, log_dir=str(self.log_dir))
@@ -180,20 +185,26 @@ class AIQSRConsolidator:
 
         self.logger.info(f"Validated {len(valid_projects)} projects")
 
-        # Deduplicate
+        # Deduplicate (mark duplicates but don't skip them)
         if not skip_deduplication:
             self.logger.info("Loading existing hashes for deduplication...")
             self.deduplicator.load_existing_hashes()
 
-            new_projects, duplicate_projects = self.deduplicator.detect_duplicates(valid_projects)
+            all_projects, duplicate_projects = self.deduplicator.detect_duplicates(
+                valid_projects,
+                mark_only=True  # Mark duplicates but don't filter them out
+            )
 
             if duplicate_projects:
-                self.logger.warning(f"Skipped {len(duplicate_projects)} duplicate projects")
+                self.logger.warning(
+                    f"Detected {len(duplicate_projects)} duplicate projects "
+                    f"(will be loaded but marked as duplicates in logs)"
+                )
                 duplicate_summary = self.deduplicator.get_duplicate_summary(duplicate_projects)
                 self.logger.info(f"Duplicate summary: {duplicate_summary}")
 
-            valid_projects = new_projects
-            self.logger.info(f"{len(valid_projects)} new projects after deduplication")
+            valid_projects = all_projects
+            self.logger.info(f"{len(valid_projects)} projects ready for loading (includes {len(duplicate_projects)} duplicates)")
 
         # Step 4: Loading
         self.logger.info("Step 4/4: Loading data...")
@@ -279,6 +290,14 @@ def main():
         help='Logging level'
     )
 
+    parser.add_argument(
+        '--environment',
+        type=str,
+        default='test',
+        choices=['test', 'live'],
+        help='Environment to use - test or live (default: test)'
+    )
+
     args = parser.parse_args()
 
     # Validate file exists
@@ -289,7 +308,10 @@ def main():
 
     # Initialize and run ETL
     try:
-        consolidator = AIQSRConsolidator(log_level=args.log_level)
+        consolidator = AIQSRConsolidator(
+            log_level=args.log_level,
+            environment=args.environment
+        )
         result = consolidator.process_workbook(
             file_path=file_path,
             business_id=args.business,

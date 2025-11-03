@@ -1,0 +1,96 @@
+{
+  "overview": {
+    "total_projects": 35,
+    "total_businesses": 5,
+    "date_range": {
+      "start": "2025-10-31 15:39:41.555000",
+      "end": "2025-10-31 19:26:28.681000"
+    }
+  },
+  "business_counts": {
+    "Jonas Fitness Inc": 10,
+    "ClubWise": 7,
+    "ClubOS": 7,
+    "Campsite": 6,
+    "EZ_Facility": 5
+  },
+  "category_distribution": {
+    "L3.  AI-powered internal business process improvements": 10,
+    "L1. Using external AI tools for basic internal productivity": 8,
+    "L4.  Using AI to enhance existing customer-facing products": 8,
+    "L5.  Entirely new product capabilities powered by AI": 6,
+    "L2.  Sophisticated AI tooling for development/operations but generally limited to a single department or workflow": 3
+  },
+  "stage_distribution": {
+    "Live": 11,
+    "Idea": 11,
+    "Develop": 7,
+    "Pilot": 4,
+    "Not Started": 2
+  },
+  "kpi_analysis": {
+    "total_kpis": 105,
+    "top_categories": {
+      "Productivity Gains": 18,
+      "Cost Savings": 18,
+      "Revenue Impact": 14,
+      "Employee Satisfaction": 10,
+      "Usage Metrics": 8
+    },
+    "avg_kpis_per_project": 3.0
+  },
+  "milestone_completion": {
+    "by_stage": {
+      "completed_count": {
+        "Develop": 75,
+        "Idea": 94,
+        "Live": 23,
+        "Pilot": 43
+      },
+      "completion_rate": {
+        "Develop": 0.714,
+        "Idea": 0.895,
+        "Live": 0.219,
+        "Pilot": 0.41
+      },
+      "total_milestones": {
+        "Develop": 105,
+        "Idea": 105,
+        "Live": 105,
+        "Pilot": 105
+      }
+    },
+    "by_business": {
+      "completed_count": {
+        "Campsite": 38,
+        "ClubOS": 46,
+        "ClubWise": 51,
+        "EZ_Facility": 27,
+        "Jonas Fitness Inc": 73
+      },
+      "completion_rate": {
+        "Campsite": 0.528,
+        "ClubOS": 0.548,
+        "ClubWise": 0.607,
+        "EZ_Facility": 0.45,
+        "Jonas Fitness Inc": 0.608
+      }
+    }
+  },
+  "scoring": {
+    "top_businesses": {
+      "Jonas Fitness Inc": 426.4,
+      "EZ_Facility": 265.0,
+      "ClubOS": 212.4,
+      "Campsite": 209.0,
+      "ClubWise": 171.0
+    },
+    "avg_by_category": {
+      "L1. Using external AI tools for basic internal productivity": 8.6,
+      "L2.  Sophisticated AI tooling for development/operations but generally limited to a single department or workflow": 22.333333333333332,
+      "L3.  AI-powered internal business process improvements": 30.4,
+      "L4.  Using AI to enhance existing customer-facing products": 33.5,
+      "L5.  Entirely new product capabilities powered by AI": 96.0
+    }
+  }
+}

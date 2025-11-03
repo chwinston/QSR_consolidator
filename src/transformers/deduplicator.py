@@ -66,18 +66,20 @@ class Deduplicator:
 
     def detect_duplicates(
         self,
-        projects: List[Dict[str, Any]]
+        projects: List[Dict[str, Any]],
+        mark_only: bool = True
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         Detect duplicate projects.
 
         Args:
             projects: List of project dictionaries with 'data_hash' field
+            mark_only: If True, mark duplicates but return all projects. If False, filter duplicates.
 
         Returns:
             Tuple of (new_projects, duplicate_projects)
-            - new_projects: Projects that are not duplicates
-            - duplicate_projects: Projects that are duplicates
+            - new_projects: Projects that are not duplicates (or all projects if mark_only=True)
+            - duplicate_projects: Projects that are duplicates (for logging only if mark_only=True)
         """
         new_projects = []
         duplicate_projects = []
@@ -90,6 +92,7 @@ class Deduplicator:
                 self.logger.warning(
                     f"Project missing data_hash: {project.get('project_name', 'Unknown')}"
                 )
+                project['is_duplicate'] = False
                 new_projects.append(project)
                 continue
 
@@ -100,16 +103,27 @@ class Deduplicator:
                     project_name=project.get('project_name', 'Unknown'),
                     week=project.get('submission_week', 'Unknown')
                 )
+                project['is_duplicate'] = True
                 duplicate_projects.append(project)
+
+                if mark_only:
+                    # Mark as duplicate but still include in results
+                    new_projects.append(project)
             else:
                 # New project
+                project['is_duplicate'] = False
                 new_projects.append(project)
                 # Add to existing hashes to detect duplicates within same batch
                 self.existing_hashes.add(data_hash)
 
-        self.logger.info(
-            f"Deduplication complete: {len(new_projects)} new, {len(duplicate_projects)} duplicates"
-        )
+        if mark_only:
+            self.logger.info(
+                f"Deduplication complete: {len(new_projects)} total projects, {len(duplicate_projects)} marked as duplicates (but still included)"
+            )
+        else:
+            self.logger.info(
+                f"Deduplication complete: {len(new_projects)} new, {len(duplicate_projects)} duplicates filtered"
+            )
 
         return (new_projects, duplicate_projects)
 

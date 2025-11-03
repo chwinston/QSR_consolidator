@@ -20,6 +20,10 @@
 - [claude-code - Merged Cells Fix](#claude-code---merged-cells-fix---2025-10-26-221000)
 - [claude-code - Field Mapping Correction](#claude-code---field-mapping-correction---2025-10-27-095300)
 - [claude-code - Formula Values Extraction Fix](#claude-code---formula-values-extraction-fix---2025-10-27-160000)
+- [claude-code - Template Update & Test/Live Refactor](#claude-code---template-update--testlive-refactor---2025-10-31-120000)
+- [claude-code - Deduplication Logic Fix](#claude-code---deduplication-logic-fix---2025-10-31-191000)
+- [claude-code - T1 QSR Data Analysis](#claude-code---t1-qsr-data-analysis---2025-11-03-080000)
+- [claude-code - KPI Quality File Enhancement](#claude-code---kpi-quality-file-enhancement---2025-11-03-083000)
 
 ---
 
@@ -251,6 +255,125 @@ rm check_template.py check_output.py  # Result: ✅ Cleanup complete
 
 **Status**: ✅ Completed - Formula values now extract correctly, all 12 fields populate in consolidator
 **Next Agent**: User to re-test with EZFacility_Test.xlsx to verify fix with actual test data
+
+---
+
+
+### claude-code - Template Update & Test/Live Refactor - 2025-10-31 12:00:00
+
+**Role**: Refactoring agent for template updates and environment separation
+**Task**: Update field mapping for new template, reorder KPI notes columns, implement test/live environment separation
+**Detailed Summary**: [`refactor_summary_1.md`](execution_logs/refactor_summary_1.md)
+
+**Work Completed**:
+- Updated field_mapping.csv: 42 fields repositioned, 15 new notes fields added (76→91 total fields)
+- Reordered KPI notes to group with their KPIs (target→actual→delta→notes per KPI)
+- Created test/live environment separation (data/test/ and data/live/ directories)
+- Added environment parameter to main.py (--environment test|live)
+- Created /test-qsr and /real-qsr slash commands for quick extractions
+- Fixed config_loader.py to handle empty row numbers and validate 91 fields
+
+**Commands Run**:
+```bash
+python analyze_template.py  # Result: ✅ Mapped all field shifts and new notes
+python update_field_mapping.py  # Result: ✅ 91 fields with proper grouping
+python reorder_kpi_columns.py  # Result: ✅ Notes grouped with KPIs
+mkdir -p data/test/{archive,logs} data/live/{archive,logs}  # Result: ✅ Folders created
+python main.py --file "Project_planning/Assets/ClubOS_test.xlsx" --business ClubOS --environment test  # Result: ✅ Extraction working
+python setup_master_files.py  # Result: ✅ Created test/live master consolidator files (99 columns each)
+```
+
+**Status**: ✅ Completed - All refactoring complete, test/live environments ready
+**Next Agent**: User to test slash commands (/test-qsr and /real-qsr) with actual QSR submissions
+
+---
+
+### claude-code - Deduplication Logic Fix - 2025-10-31 19:10:00
+
+**Role**: Bug fix agent addressing duplicate detection preventing legitimate same-name projects from loading
+**Task**: Modify deduplication system to log duplicates but NOT skip them from consolidator
+**Detailed Summary**: [`bugfix_summary_2.md`](execution_logs/bugfix_summary_2.md)
+
+**Work Completed**:
+- Modified deduplicator.py to add mark_only parameter and is_duplicate flag to projects
+- Updated main.py to use mark_only=True, allowing all projects to load while tracking duplicates
+- Added is_duplicate boolean field to consolidator output (automatically included by ExcelLoader)
+- Created and validated unit test showing 3 projects returned with 1 marked as duplicate
+- Fixed issue where P2 (Advanced Email Campaigns L2) was skipped as duplicate of P1 (Advanced Email Campaigns L5)
+
+**Commands Run**:
+```bash
+python debug_p2.py  # Result: ✅ Confirmed P2 has same project name as P1 but different category
+python test_dedup_fix.py  # Result: ✅ All 3 test projects returned, 1 marked is_duplicate=True
+rm test_dedup_fix.py debug_p2.py  # Result: ✅ Cleanup complete
+```
+
+**Status**: ✅ Completed - Duplicates now logged but not skipped, preserves all submitted data
+**Next Agent**: User to re-run EZ Facility extraction and verify both P1 and P2 load to consolidator
+
+---
+
+### claude-code - T1 QSR Data Analysis - 2025-11-03 08:00:00
+
+**Role**: Data analysis specialist creating comprehensive insights from consolidated QSR data
+**Task**: Analyze 35 projects from 5 T1 BUs, generate visualizations, KPI quality assessment, and detailed reports
+**Detailed Summary**: [`analysis_summary_1.md`](execution_logs/analysis_summary_1.md)
+
+**Work Completed**:
+- Normalized 91-field wide data to long format (105 KPI rows, 420 milestone rows)
+- Created 11 interactive Plotly.js visualizations (leaderboard, heatmaps, funnels, dashboard)
+- Generated T1_Oct31.md comprehensive report (35+ pages with insights, assumptions, next questions)
+- Built KPI measurement quality scoring system (0-10 points based on metrics/timeframes/baselines/targets)
+- Created KPI_Measurement_Approaches_Analysis.md with 3 sections (executive summary, performance data, detailed breakdown)
+
+**Key Decisions** ⚠️:
+- Chose Plotly.js for visualizations (interactive, web-ready, executive-friendly)
+- Implemented quality scoring algorithm with regex-based detection of measurement elements
+- Organized all analysis artifacts in analysis/ directory structure (analysis_results/, Nov_2/html_visualizations/)
+
+**Commands Run**:
+```bash
+pip install plotly kaleido  # Result: ✅ Installed for interactive charts
+python analyze_qsr_data.py  # Result: ✅ Generated business/category summaries
+python deep_analysis.py  # Result: ✅ Normalized to 105 KPI + 420 milestone rows
+python create_visualizations.py  # Result: ✅ Created 11 Plotly.js HTML charts
+python generate_kpi_analysis.py  # Result: ✅ Quality scores for all 105 KPIs
+python create_measurement_report.py  # Result: ✅ KPI measurement approaches document
+python add_kpi_performance_section_fixed.py  # Result: ✅ Added performance section with targets/actuals/deltas
+```
+
+**Status**: ✅ Completed - All artifacts in analysis/ directory (21 files: 2 reports, 11 visualizations, 6 CSVs, 2 scripts)
+**Next Agent**: User for review/presentation, or dashboard-development agent for web application
+
+---
+
+### claude-code - KPI Quality File Enhancement - 2025-11-03 08:30:00
+
+**Role**: Data analysis specialist enhancing KPI measurement quality file with categorization and additional fields
+**Task**: Add sheet names, AI tools, standardized MECE categories, and actual KPI names to quality analysis file
+**Detailed Summary**: [`analysis_summary_2.md`](execution_logs/analysis_summary_2.md)
+
+**Work Completed**:
+- Added sheet_name (P1, P2, etc.) and ai_tools_services columns to KPI quality file
+- Created 20 standardized MECE measurement categories (Volume Completed, Revenue Impact, Time Saved, etc.)
+- Added actual KPI names from consolidator to column B using openpyxl (preserved formatting/pivot tables)
+- Generated Measurement_Approach_Categories_Guide.md with definitions and distribution analysis
+- Categorized all 95 measurement approaches with 100% coverage (0 null values)
+
+**Key Decisions** ⚠️:
+- Used openpyxl instead of pandas to preserve Excel formatting and pivot tables per user requirement
+- Created 20 MECE categories (not arbitrary number) - emerged from natural clustering of approaches
+- Top category "Volume Completed" (27.4%) indicates most BUs measure by counting outputs rather than efficiency
+
+**Commands Run**:
+```bash
+python create_enhanced_kpi_quality.py  # Result: ✅ Added sheet_name + ai_tools_services (111 rows)
+python categorize_measurement_approaches.py  # Result: ✅ Categorized 95 approaches into 20 MECE categories
+python add_kpi_names.py  # Result: ✅ Updated column B with KPI names (95/95 matched, formatting preserved)
+```
+
+**Status**: ✅ Completed - KPI_measurement_quality.xlsx enhanced with 3 new columns, 20-category taxonomy documented
+**Next Agent**: User for pivot analysis, or data-analyst for measurement standardization recommendations
 
 ---
 

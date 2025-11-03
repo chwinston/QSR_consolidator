@@ -14,6 +14,7 @@ Design the ETL architecture with extractors/transformers/loaders separation,
 config-driven field mapping, and error aggregation without stopping the entire
 process.
 
+
 Requirements:
 1. Component Separation (Extractors/Transformers/Loaders)
 2. Config-Driven Field Mapping
@@ -45,9 +46,9 @@ Requirements:
 
 ### Files Created
 
-| File Path | Purpose | Lines |
-|-----------|---------|-------|
-| `execution_logs/architecture_summary_1.md` | This comprehensive architecture document | 850+ |
+| File Path                                  | Purpose                                  | Lines |
+| ------------------------------------------ | ---------------------------------------- | ----- |
+| `execution_logs/architecture_summary_1.md` | This comprehensive architecture document | 850+  |
 
 ### Files Modified
 
@@ -129,6 +130,7 @@ This summary documents the complete ETL system architecture including:
 **Purpose**: Monitor email inbox, download Excel attachments, identify sender
 
 **Interface**:
+
 ```python
 class EmailHandler:
     def __init__(self, config: EmailConfig, logger: Logger):
@@ -182,6 +184,7 @@ class EmailHandler:
 ```
 
 **Data Structures**:
+
 ```python
 @dataclass
 class EmailMessage:
@@ -200,6 +203,7 @@ class Attachment:
 ```
 
 **Error Scenarios**:
+
 - IMAP connection failure → Retry with exponential backoff (3 attempts)
 - Authentication failure → Fail immediately, notify admin
 - No attachments found → Skip email, log warning
@@ -211,6 +215,7 @@ class Attachment:
 **Purpose**: Validate Excel file structure before extraction
 
 **Interface**:
+
 ```python
 class FileValidator:
     def __init__(self, config: ValidationConfig, logger: Logger):
@@ -267,6 +272,7 @@ class FileValidator:
 ```
 
 **Data Structures**:
+
 ```python
 @dataclass
 class ValidationResult:
@@ -283,6 +289,7 @@ class ValidationError:
 ```
 
 **Validation Rules**:
+
 1. **File Format**: Must be .xlsx or .xlsm
 2. **Password Protection**: Must not be password protected
 3. **Corruption Check**: Must be readable by openpyxl
@@ -295,6 +302,7 @@ class ValidationError:
 **Purpose**: Extract 76 fields from each project sheet using config-driven mapping
 
 **Interface**:
+
 ```python
 class ProjectExtractor:
     def __init__(self,
@@ -380,6 +388,7 @@ class ProjectExtractor:
 ```
 
 **Data Structures**:
+
 ```python
 @dataclass
 class ExtractionResult:
@@ -583,6 +592,7 @@ return ExtractionResult(
 **Purpose**: Clean and normalize extracted field values
 
 **Interface**:
+
 ```python
 class DataCleaner:
     def __init__(self, logger: Logger):
@@ -629,19 +639,20 @@ class DataCleaner:
 
 **Data Type Handling**:
 
-| Field Type | Input Examples | Output Type | Null Handling |
-|------------|---------------|-------------|---------------|
-| Text | "  Hello  ", None, "" | str | None → "" |
-| Integer | 5, "5", None, "" | int | None → 0 |
-| Float | 3.14, "3.14", None | float | None → 0.0 |
-| Date | 44927, "2022-12-15", None | datetime | None → None |
-| Boolean | "Yes", "No", 1, 0 | bool | None → False |
+| Field Type | Input Examples            | Output Type | Null Handling |
+| ---------- | ------------------------- | ----------- | ------------- |
+| Text       | " Hello ", None, ""       | str         | None → ""     |
+| Integer    | 5, "5", None, ""          | int         | None → 0      |
+| Float      | 3.14, "3.14", None        | float       | None → 0.0    |
+| Date       | 44927, "2022-12-15", None | datetime    | None → None   |
+| Boolean    | "Yes", "No", 1, 0         | bool        | None → False  |
 
 #### 2.2 DataValidator (`src/transformers/data_validator.py`)
 
 **Purpose**: Validate cleaned data against business rules
 
 **Interface**:
+
 ```python
 class DataValidator:
     def __init__(self, logger: Logger, error_collector: ErrorCollector):
@@ -688,6 +699,7 @@ class DataValidator:
 **Purpose**: Detect and handle duplicate submissions
 
 **Interface**:
+
 ```python
 class Deduplicator:
     def __init__(self, master_file_path: Path, logger: Logger):
@@ -744,6 +756,7 @@ class Deduplicator:
 ```
 
 **Data Structures**:
+
 ```python
 @dataclass
 class DuplicationResult:
@@ -753,6 +766,7 @@ class DuplicationResult:
 ```
 
 **Hash Calculation Implementation**:
+
 ```python
 import xxhash
 
@@ -778,6 +792,7 @@ def calculate_data_hash(self, project: ProjectData) -> str:
 **Purpose**: Append projects to master Excel consolidator file
 
 **Interface**:
+
 ```python
 class ExcelLoader:
     def __init__(self,
@@ -842,6 +857,7 @@ class ExcelLoader:
 ```
 
 **Data Structures**:
+
 ```python
 @dataclass
 class LoadResult:
@@ -859,6 +875,7 @@ class LoadError:
 ```
 
 **Master File Column Order**:
+
 ```python
 # Column order in AI_QSR_Consolidator.xlsx
 MASTER_FILE_COLUMNS = [
@@ -885,6 +902,7 @@ MASTER_FILE_COLUMNS = [
 **Purpose**: Archive original submitted workbooks
 
 **Interface**:
+
 ```python
 class ArchiveManager:
     def __init__(self, archive_path: Path, logger: Logger):
@@ -931,6 +949,7 @@ class ArchiveManager:
 **Purpose**: Write extraction audit logs to CSV
 
 **Interface**:
+
 ```python
 class LogWriter:
     def __init__(self, log_path: Path, logger: Logger):
@@ -964,6 +983,7 @@ class LogWriter:
 ```
 
 **extraction_log.csv Schema**:
+
 ```csv
 extraction_id,timestamp,business_id,business_name,workbook_filename,sheets_attempted,sheets_succeeded,sheets_failed,error_count,status
 uuid-123,2025-10-26 14:30:00,BU_001,ClubOS,AI_QSR_Inputs_vBeta.xlsx,8,8,0,0,SUCCESS
@@ -979,6 +999,7 @@ uuid-456,2025-10-26 14:35:00,BU_002,EZ Facility,AI_QSR_Inputs_vBeta.xlsx,10,8,2,
 **Purpose**: Aggregate errors across entire pipeline without stopping
 
 **Interface**:
+
 ```python
 class ErrorCollector:
     def __init__(self):
@@ -1020,6 +1041,7 @@ class ErrorCollector:
 ```
 
 **Usage Pattern**:
+
 ```python
 # In ProjectExtractor
 error_collector = ErrorCollector()
@@ -1047,6 +1069,7 @@ if error_collector.has_errors():
 **Purpose**: Structured logging with rotation
 
 **Interface**:
+
 ```python
 class ETLLogger:
     def __init__(self, log_path: Path, level: str = 'INFO'):
@@ -1073,6 +1096,7 @@ class ETLLogger:
 **Purpose**: Send email notifications for success/failure
 
 **Interface**:
+
 ```python
 class EmailNotifier:
     def __init__(self, smtp_config: SMTPConfig, logger: Logger):
@@ -1141,6 +1165,7 @@ class EmailNotifier:
 **Purpose**: Load and validate configuration files
 
 **Interface**:
+
 ```python
 class ConfigLoader:
     @staticmethod
@@ -1191,6 +1216,7 @@ class ConfigLoader:
 **Purpose**: Define position of all 76 fields in Excel template
 
 **Schema**:
+
 ```csv
 output_column_name,input_row_number,input_column_letter,data_type,is_required,default_value,validation_rule
 project_name,3,C,text,true,,max_length:200
@@ -1217,6 +1243,7 @@ kpi1_delta,22,C,float,false,0.0,
 ```
 
 **Columns**:
+
 - `output_column_name`: Column name in AI_QSR_Consolidator.xlsx
 - `input_row_number`: Row number in P# sheet (1-indexed)
 - `input_column_letter`: Column letter in P# sheet (always C for values)
@@ -1226,6 +1253,7 @@ kpi1_delta,22,C,float,false,0.0,
 - `validation_rule`: Optional validation (max_length, range, enum, format)
 
 **Benefits**:
+
 - Maintainable: Update CSV if Excel template changes, no code changes
 - Auditable: See all field mappings in one place
 - Testable: Easy to test field extraction logic
@@ -1236,6 +1264,7 @@ kpi1_delta,22,C,float,false,0.0,
 **Purpose**: Map email addresses to business unit IDs
 
 **Schema**:
+
 ```csv
 business_id,business_name,contact_email,is_active,notes
 BU_001,ClubOS,clubos-pm@jonas.com,true,Tier 1 priority
@@ -1248,6 +1277,7 @@ BU_006,Jonas Fitness Inc,jfi-pm@jonas.com,true,Tier 1 priority
 ```
 
 **Columns**:
+
 - `business_id`: Unique identifier (BU_001 - BU_030)
 - `business_name`: Human-readable business name
 - `contact_email`: Email domain for sender identification (supports comma-separated multiple)
@@ -1255,6 +1285,7 @@ BU_006,Jonas Fitness Inc,jfi-pm@jonas.com,true,Tier 1 priority
 - `notes`: Optional notes (priority tier, etc.)
 
 **Email Matching Logic**:
+
 ```python
 def identify_business(sender_email: str, businesses: List[Business]) -> str:
     sender_domain = sender_email.split('@')[1]
@@ -1434,6 +1465,7 @@ def identify_business(sender_email: str, businesses: List[Business]) -> str:
 ### State Management
 
 **Extraction State Tracking**:
+
 ```python
 @dataclass
 class ETLState:
@@ -1449,6 +1481,7 @@ class ETLState:
 ```
 
 **State Persistence**:
+
 - In-memory state during processing
 - Written to extraction_log.csv on completion
 - No database required for Phase 1 (simplicity)
@@ -1568,23 +1601,27 @@ ai_qsr_etl/
 **Choice**: Use `field_mapping.csv` instead of hardcoding field positions
 
 **Rationale**:
+
 - Excel template may change (fields move, new fields added)
 - Non-technical users can update CSV without code changes
 - Easy to audit all field mappings in one place
 - Supports multiple template versions simultaneously
 
 **Alternatives Considered**:
+
 - Hardcode in Python constants (rejected - not maintainable)
 - JSON config (rejected - CSV easier for non-technical users)
 - Database table (rejected - overkill for Phase 1)
 
 **Tradeoffs**:
+
 - Pro: Extremely flexible, maintainable by non-developers
 - Pro: Easy to version control field mapping changes
 - Con: Requires CSV parsing on every run (minimal performance impact <10ms)
 - Con: Field mapping errors only caught at runtime, not compile time
 
 **Implementation Guidance**:
+
 ```python
 # Load once at startup
 field_mapping = ConfigLoader.load_field_mapping('config/field_mapping.csv')
@@ -1600,16 +1637,19 @@ for field_config in field_mapping.fields:
 **Choice**: Collect all errors, never stop entire ETL run
 
 **Rationale**:
+
 - Partial success is valuable (8 of 10 projects better than 0)
 - Business needs weekly data even if some sheets malformed
 - Better user experience (one comprehensive error report vs multiple failures)
 - Reduces manual intervention (don't need to fix and re-run for each error)
 
 **Alternatives Considered**:
+
 - Fail-fast on first error (rejected - too disruptive)
 - Stop per-workbook but continue across workbooks (rejected - still loses partial data)
 
 **Tradeoffs**:
+
 - Pro: Maximum data capture
 - Pro: Better error reporting (see all issues at once)
 - Pro: Reduces manual intervention
@@ -1617,6 +1657,7 @@ for field_config in field_mapping.fields:
 - Con: Must carefully track state to know what succeeded/failed
 
 **Implementation Pattern**:
+
 ```python
 # ALWAYS use this pattern
 errors = []
@@ -1638,23 +1679,27 @@ return ProcessResult(successes=successes, errors=errors)
 **Choice**: Use xxhash for data_hash calculation
 
 **Rationale**:
+
 - 10x faster than MD5/SHA for large strings
 - Collision resistance sufficient for this use case (30 businesses × 10 projects × 52 weeks = ~15,000 records/year)
 - Python bindings mature and stable
 - Non-cryptographic hash appropriate (not securing data, just detecting duplicates)
 
 **Alternatives Considered**:
+
 - MD5 (rejected - slower, overkill for collision resistance)
 - SHA256 (rejected - much slower, cryptographic features not needed)
 - Simple string comparison (rejected - no collision detection)
 
 **Tradeoffs**:
+
 - Pro: Very fast (< 1ms per hash)
 - Pro: Low memory footprint
 - Con: Requires additional dependency (xxhash package)
 - Con: Hash not cryptographically secure (acceptable for this use case)
 
 **Hash Key Design**:
+
 ```python
 # Hash key: business_id + sheet_name + submission_week
 # Allows same project tracked week-over-week as separate entries
@@ -1669,6 +1714,7 @@ hash_key = f"{business_id}|{sheet_name}|{submission_week}"
 **Choice**: Use Excel as master file for Phase 1
 
 **Rationale**:
+
 - Stakeholders already use Excel ecosystem
 - No database infrastructure required
 - Easy to inspect/audit data manually
@@ -1676,11 +1722,13 @@ hash_key = f"{business_id}|{sheet_name}|{submission_week}"
 - Fast time-to-value (no DB setup)
 
 **Alternatives Considered**:
+
 - PostgreSQL (rejected for Phase 1 - infrastructure overhead)
 - SQLite (considered - but Excel provides better stakeholder experience)
 - Cloud database (rejected for Phase 1 - costs and complexity)
 
 **Tradeoffs**:
+
 - Pro: Zero infrastructure setup
 - Pro: Familiar to stakeholders
 - Pro: Easy manual inspection
@@ -1689,6 +1737,7 @@ hash_key = f"{business_id}|{sheet_name}|{submission_week}"
 - Con: Limited query capabilities compared to SQL
 
 **Migration Path**:
+
 ```python
 # Design loaders with interface abstraction
 class DataLoader(ABC):
@@ -1711,17 +1760,20 @@ class DatabaseLoader(DataLoader):
 **Choice**: Use openpyxl with data_only=True parameter
 
 **Rationale**:
+
 - Excel cells contain formulas (=SUM(...), =IF(...), etc.)
 - Need calculated values, not formula strings
 - data_only=True returns last cached value from Excel
 - Alternative (evaluate formulas live) requires Excel COM automation (Windows-only)
 
 **Alternatives Considered**:
+
 - xlrd (rejected - deprecated for .xlsx, only .xls)
 - pandas read_excel (rejected - doesn't handle formulas well)
 - Excel COM automation (rejected - Windows-only, heavy dependency)
 
 **Tradeoffs**:
+
 - Pro: Cross-platform (works on Windows/Mac/Linux)
 - Pro: No Excel installation required
 - Pro: Fast and reliable
@@ -1729,6 +1781,7 @@ class DatabaseLoader(DataLoader):
 - Con: If file never saved in Excel, cached values may be None
 
 **Mitigation**:
+
 ```python
 # Document edge case in validation
 if cell_value is None and cell.data_type == 'f':  # Formula cell
@@ -1743,16 +1796,19 @@ if cell_value is None and cell.data_type == 'f':  # Formula cell
 **Choice**: Central orchestrator coordinates all components
 
 **Rationale**:
+
 - Clear entry point for ETL process
 - Manages dependencies between components
 - Handles error aggregation across all phases
 - Provides consistent logging and notification
 
 **Alternatives Considered**:
+
 - Chain of responsibility (rejected - harder to test individual components)
 - Event-driven architecture (rejected - overkill for linear ETL)
 
 **Tradeoffs**:
+
 - Pro: Clear control flow
 - Pro: Easy to test orchestration logic
 - Pro: Single place to manage error aggregation
@@ -1760,6 +1816,7 @@ if cell_value is None and cell.data_type == 'f':  # Formula cell
 - Con: Tight coupling between orchestrator and components
 
 **Implementation**:
+
 ```python
 # src/orchestrator.py
 class ETLOrchestrator:
@@ -1788,6 +1845,7 @@ class ETLOrchestrator:
 **Protocol**: IMAP (Internet Message Access Protocol)
 
 **Configuration**:
+
 ```yaml
 # config/email_config.yaml (or .env)
 IMAP_SERVER: imap.gmail.com
@@ -1800,6 +1858,7 @@ MARK_AS_READ: true
 ```
 
 **Email Filter Criteria**:
+
 ```python
 # Search for unread emails with Excel attachments
 search_criteria = [
@@ -1810,6 +1869,7 @@ search_criteria = [
 ```
 
 **Attachment Processing**:
+
 ```python
 # Email structure
 email = {
@@ -1832,6 +1892,7 @@ if attachment.content_type in ALLOWED_CONTENT_TYPES:
 ```
 
 **Error Scenarios**:
+
 - No attachment → Skip email, send warning to sender
 - Multiple attachments → Process all Excel files, warn if >1 Excel
 - Corrupted attachment → Skip, send error notification
@@ -1842,6 +1903,7 @@ if attachment.content_type in ALLOWED_CONTENT_TYPES:
 **Library**: Office365-REST-Python-Client
 
 **Configuration**:
+
 ```python
 from office365.sharepoint.client_context import ClientContext
 
@@ -1854,6 +1916,7 @@ sharepoint_config = {
 ```
 
 **Polling Strategy**:
+
 ```python
 # Check for new files every 30 minutes
 while True:
@@ -1872,6 +1935,7 @@ while True:
 **Protocol**: SMTP (Simple Mail Transfer Protocol)
 
 **Configuration**:
+
 ```python
 SMTP_SERVER: smtp.gmail.com
 SMTP_PORT: 587
@@ -1885,73 +1949,116 @@ NOTIFICATION_CC: ai-transformation@company.com
 **Email Templates**:
 
 **Success Template**:
+
 ```html
 <html>
-<head><style>
-    .success { color: green; font-weight: bold; }
-    table { border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-</style></head>
-<body>
-<h2 class="success">✅ AI QSR ETL - Success</h2>
+  <head>
+    <style>
+      .success {
+        color: green;
+        font-weight: bold;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 class="success">✅ AI QSR ETL - Success</h2>
 
-<p><strong>Extraction ID:</strong> {extraction_id}</p>
-<p><strong>Business:</strong> {business_name} ({business_id})</p>
-<p><strong>Timestamp:</strong> {timestamp}</p>
-<p><strong>Workbook:</strong> {filename}</p>
+    <p><strong>Extraction ID:</strong> {extraction_id}</p>
+    <p><strong>Business:</strong> {business_name} ({business_id})</p>
+    <p><strong>Timestamp:</strong> {timestamp}</p>
+    <p><strong>Workbook:</strong> {filename}</p>
 
-<h3>Results</h3>
-<table>
-    <tr><th>Metric</th><th>Value</th></tr>
-    <tr><td>Projects Extracted</td><td>{project_count}</td></tr>
-    <tr><td>Sheets Processed</td><td>{sheets_succeeded}/{sheets_total}</td></tr>
-    <tr><td>Errors</td><td>0</td></tr>
-</table>
+    <h3>Results</h3>
+    <table>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Projects Extracted</td>
+        <td>{project_count}</td>
+      </tr>
+      <tr>
+        <td>Sheets Processed</td>
+        <td>{sheets_succeeded}/{sheets_total}</td>
+      </tr>
+      <tr>
+        <td>Errors</td>
+        <td>0</td>
+      </tr>
+    </table>
 
-<h3>Next Steps</h3>
-<ul>
-    <li>Data appended to master file</li>
-    <li>Original workbook archived</li>
-    <li>Extraction logged to audit trail</li>
-</ul>
-</body>
+    <h3>Next Steps</h3>
+    <ul>
+      <li>Data appended to master file</li>
+      <li>Original workbook archived</li>
+      <li>Extraction logged to audit trail</li>
+    </ul>
+  </body>
 </html>
 ```
 
 **Error Template**:
+
 ```html
 <html>
-<head><style>
-    .error { color: red; font-weight: bold; }
-    .error-detail { background: #ffe6e6; padding: 10px; margin: 10px 0; }
-</style></head>
-<body>
-<h2 class="error">❌ AI QSR ETL - Errors Detected</h2>
+  <head>
+    <style>
+      .error {
+        color: red;
+        font-weight: bold;
+      }
+      .error-detail {
+        background: #ffe6e6;
+        padding: 10px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 class="error">❌ AI QSR ETL - Errors Detected</h2>
 
-<p><strong>Extraction ID:</strong> {extraction_id}</p>
-<p><strong>Business:</strong> {business_name} ({business_id})</p>
-<p><strong>Timestamp:</strong> {timestamp}</p>
-<p><strong>Workbook:</strong> {filename}</p>
+    <p><strong>Extraction ID:</strong> {extraction_id}</p>
+    <p><strong>Business:</strong> {business_name} ({business_id})</p>
+    <p><strong>Timestamp:</strong> {timestamp}</p>
+    <p><strong>Workbook:</strong> {filename}</p>
 
-<h3>Results</h3>
-<table>
-    <tr><th>Metric</th><th>Value</th></tr>
-    <tr><td>Projects Extracted</td><td>{success_count}</td></tr>
-    <tr><td>Sheets Failed</td><td>{error_count}</td></tr>
-</table>
+    <h3>Results</h3>
+    <table>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Projects Extracted</td>
+        <td>{success_count}</td>
+      </tr>
+      <tr>
+        <td>Sheets Failed</td>
+        <td>{error_count}</td>
+      </tr>
+    </table>
 
-<h3>Error Details</h3>
-{for error in errors}
-<div class="error-detail">
-    <p><strong>Sheet:</strong> {error.sheet_name}</p>
-    <p><strong>Error:</strong> {error.message}</p>
-    <pre>{error.traceback}</pre>
-</div>
-{endfor}
+    <h3>Error Details</h3>
+    {for error in errors}
+    <div class="error-detail">
+      <p><strong>Sheet:</strong> {error.sheet_name}</p>
+      <p><strong>Error:</strong> {error.message}</p>
+      <pre>{error.traceback}</pre>
+    </div>
+    {endfor}
 
-<h3>Action Required</h3>
-<p>Please review the errors above and resubmit corrected workbook.</p>
-</body>
+    <h3>Action Required</h3>
+    <p>Please review the errors above and resubmit corrected workbook.</p>
+  </body>
 </html>
 ```
 
@@ -1960,6 +2067,7 @@ NOTIFICATION_CC: ai-transformation@company.com
 **Library**: Python logging module + loguru (optional)
 
 **Log Rotation Strategy**:
+
 ```python
 import logging
 from logging.handlers import TimedRotatingFileHandler
@@ -1979,6 +2087,7 @@ handler.setFormatter(formatter)
 ```
 
 **Log Levels**:
+
 - DEBUG: Field-level extraction details
 - INFO: Phase transitions, progress updates
 - WARNING: Non-critical issues (missing optional fields)
@@ -1986,6 +2095,7 @@ handler.setFormatter(formatter)
 - CRITICAL: System-level failures (disk full, SMTP down)
 
 **Log Output Examples**:
+
 ```
 2025-10-26 14:30:00 | INFO | uuid-123 | Starting ETL run for BU_001
 2025-10-26 14:30:01 | INFO | uuid-123 | Validating file: AI_QSR_Inputs_vBeta.xlsx
@@ -2014,6 +2124,7 @@ handler.setFormatter(formatter)
 - **Excel File Size**: ~2-5MB per year
 
 **Performance Targets**:
+
 - Workbook processing: < 5 seconds per workbook
 - Total weekly ETL: < 3 minutes for all 30 businesses
 - Master file append: < 500ms for 150 rows
@@ -2033,6 +2144,7 @@ handler.setFormatter(formatter)
 3. **Year 3 (50,000+ rows)**: PostgreSQL with Excel export for reporting
 
 **Database Schema (Future)**:
+
 ```sql
 -- projects table
 CREATE TABLE projects (
@@ -2077,6 +2189,7 @@ CREATE INDEX idx_submission_date ON projects(submission_date);
 ### Performance Optimization Strategies
 
 **Parallel Processing**:
+
 ```python
 # Phase 2: Process multiple workbooks in parallel
 from concurrent.futures import ThreadPoolExecutor
@@ -2091,6 +2204,7 @@ with ThreadPoolExecutor(max_workers=5) as executor:
 ```
 
 **Batch Loading**:
+
 ```python
 # Instead of appending one row at a time
 # Batch all projects and append once
@@ -2104,6 +2218,7 @@ excel_loader.load_projects(all_projects)
 ```
 
 **Caching**:
+
 ```python
 # Cache field mapping and business config
 # Load once at startup, not per workbook
@@ -2122,6 +2237,7 @@ class ETLOrchestrator:
 **Coverage Target**: 80%+ line coverage
 
 **Example Tests**:
+
 ```python
 # tests/unit/test_extractor.py
 
@@ -2155,6 +2271,7 @@ def test_extract_date_field_excel_serial():
 ### Level 2: Integration Tests (Component Interaction)
 
 **Example Tests**:
+
 ```python
 # tests/integration/test_full_etl.py
 
@@ -2198,6 +2315,7 @@ def test_process_workbook_with_errors_continues():
 ### Level 3: E2E Tests (Full Workflow)
 
 **Example Tests**:
+
 ```python
 # tests/e2e/test_email_workflow.py
 
@@ -2225,6 +2343,7 @@ def test_email_workflow_complete():
 ### Level 4: Edge Case Tests
 
 **Critical Edge Cases**:
+
 ```python
 # Merged cells
 def test_reject_workbook_with_merged_cells()
@@ -2278,16 +2397,19 @@ N/A - Architecture design phase has no code to validate. Implementation team wil
 **Critical Architecture Principles**:
 
 1. **NEVER Stop on Error**: Always collect errors and continue processing
+
    - Use error_collector pattern throughout
    - Return both successes and failures from every function
    - Partial success is valuable
 
 2. **Config-Driven Everything**: No hardcoded field positions or business mappings
+
    - Use field_mapping.csv for all field extractions
    - Use businesses.csv for all business lookups
    - Makes system maintainable by non-developers
 
 3. **Separation of Concerns**: Each module has one responsibility
+
    - Extractors: Get data in
    - Transformers: Clean and validate
    - Loaders: Write data out
@@ -2301,48 +2423,26 @@ N/A - Architecture design phase has no code to validate. Implementation team wil
 **Implementation Order Recommendation**:
 
 **Week 1: Foundation**
+
 1. Setup project structure and dependencies
 2. Implement ConfigLoader (field_mapping.csv, businesses.csv)
 3. Implement ErrorCollector and Logger
 4. Create test fixtures
 
-**Week 2: Extraction Layer**
-5. Implement FileValidator
-6. Implement ProjectExtractor (core 76-field extraction)
-7. Unit tests for extraction logic
-8. Integration test for full extraction
+**Week 2: Extraction Layer** 5. Implement FileValidator 6. Implement ProjectExtractor (core 76-field extraction) 7. Unit tests for extraction logic 8. Integration test for full extraction
 
-**Week 3: Transformation Layer**
-9. Implement DataCleaner
-10. Implement DataValidator
-11. Implement Deduplicator
-12. Unit tests for transformation logic
+**Week 3: Transformation Layer** 9. Implement DataCleaner 10. Implement DataValidator 11. Implement Deduplicator 12. Unit tests for transformation logic
 
-**Week 4: Loading Layer**
-13. Implement ExcelLoader
-14. Implement ArchiveManager
-15. Implement LogWriter
-16. Integration test for full loading
+**Week 4: Loading Layer** 13. Implement ExcelLoader 14. Implement ArchiveManager 15. Implement LogWriter 16. Integration test for full loading
 
-**Week 5: Orchestration**
-17. Implement ETLOrchestrator
-18. Implement EmailHandler (manual mode first)
-19. Implement EmailNotifier
-20. E2E test for manual workflow
+**Week 5: Orchestration** 17. Implement ETLOrchestrator 18. Implement EmailHandler (manual mode first) 19. Implement EmailNotifier 20. E2E test for manual workflow
 
-**Week 6: Email Monitoring**
-21. Implement EmailHandler (IMAP mode)
-22. E2E test for email workflow
-23. Error scenario testing
-24. Performance testing
+**Week 6: Email Monitoring** 21. Implement EmailHandler (IMAP mode) 22. E2E test for email workflow 23. Error scenario testing 24. Performance testing
 
-**Week 7: Polish & Documentation**
-25. Comprehensive error handling
-26. User documentation
-27. Deployment guide
-28. Handoff to operations
+**Week 7: Polish & Documentation** 25. Comprehensive error handling 26. User documentation 27. Deployment guide 28. Handoff to operations
 
 **Critical Files to Create First**:
+
 1. `config/field_mapping.csv` (76 rows - defines entire extraction logic)
 2. `config/businesses.csv` (30 rows - defines business mappings)
 3. `src/utils/error_collector.py` (used by all components)
@@ -2352,26 +2452,31 @@ N/A - Architecture design phase has no code to validate. Implementation team wil
 **Gotchas to Watch For**:
 
 1. **openpyxl Formula Handling**:
+
    - Use `data_only=True` to get cached values
    - Cells may return None if Excel hasn't calculated
    - Document this in user guide
 
 2. **Excel File Locking**:
+
    - If user has file open, write will fail
    - Implement retry logic with 3 attempts
    - Clear error message to close file
 
 3. **Date Parsing**:
+
    - Excel stores dates as serial numbers (44927)
    - openpyxl may return datetime objects or numbers
    - Handle both cases in clean_date_field()
 
 4. **Merged Cells**:
+
    - Only top-left cell contains value
    - Other cells in merge return None
    - Validate and reject files with merged cells
 
 5. **Sheet Name Matching**:
+
    - Use regex: `^P\d{1,2}$` (P1, P2, ..., P10)
    - Case-sensitive matching
    - Ignore sheets like "P1 Draft" or "P1_old"
@@ -2402,12 +2507,14 @@ N/A - Architecture design phase has no code to validate. Implementation team wil
 **Performance Benchmarks**:
 
 Target performance for Phase 1:
+
 - Single workbook processing: < 5 seconds
 - 30 workbook batch: < 3 minutes
 - Master file append (150 rows): < 500ms
 - Email check and download: < 10 seconds
 
 If performance slower than targets:
+
 1. Profile code to find bottleneck
 2. Consider parallel processing for multiple workbooks
 3. Batch database operations
@@ -2416,6 +2523,7 @@ If performance slower than targets:
 **Support for Future Database Migration**:
 
 Design loaders with interface abstraction:
+
 ```python
 class DataLoader(ABC):
     @abstractmethod
@@ -2445,10 +2553,12 @@ Before starting implementation, clarify:
 ### Unresolved Design Questions
 
 1. **Concurrent Submissions**: What if two businesses submit simultaneously?
+
    - Phase 1: Single-threaded processing (FIFO queue)
    - Phase 2: Thread-safe master file appending
 
 2. **Workbook Versioning**: What if business resubmits corrected file?
+
    - Current design: Duplicate detection prevents overwrite
    - Future: Add "replacement" mode to update existing entries
 
@@ -2462,21 +2572,25 @@ Before starting implementation, clarify:
 ## Artifacts Produced
 
 **Architecture Documents**:
+
 - This comprehensive architecture summary (execution_logs/architecture_summary_1.md)
 
 **Design Artifacts** (to be created by implementation team):
+
 - Component interface definitions
 - Data structure schemas
 - Configuration file templates
 - Test fixture specifications
 
 **Configuration Schemas Defined**:
+
 - field_mapping.csv schema (76 fields)
 - businesses.csv schema (30 business units)
 - extraction_log.csv schema (audit trail)
 - .env template (environment variables)
 
 **Directory Structure Designed**:
+
 - Complete src/ module organization
 - Test suite structure
 - Data file organization
@@ -2487,12 +2601,14 @@ Before starting implementation, clarify:
 ## References
 
 **Architectural Patterns**:
+
 - Pipeline Architecture: https://en.wikipedia.org/wiki/Pipeline_(software)
 - ETL Pattern: https://en.wikipedia.org/wiki/Extract,_transform,_load
 - Chain of Responsibility: https://refactoring.guru/design-patterns/chain-of-responsibility
 - Strategy Pattern (for config-driven logic): https://refactoring.guru/design-patterns/strategy
 
 **Python Libraries**:
+
 - pandas: https://pandas.pydata.org/docs/
 - openpyxl: https://openpyxl.readthedocs.io/
 - xxhash: https://github.com/ifduyue/python-xxhash
@@ -2500,11 +2616,13 @@ Before starting implementation, clarify:
 - Office365 REST: https://github.com/vgrem/Office365-REST-Python-Client
 
 **Best Practices**:
+
 - Fail-Safe Processing: https://martinfowler.com/articles/patterns-of-distributed-systems/failing-gracefully.html
 - Config-Driven Systems: https://12factor.net/config
 - Structured Logging: https://www.structlog.org/en/stable/why.html
 
 **Internal References**:
+
 - Project Requirements: [Initial.md](../Initial.md)
 - Execution Log: [execution_log.md](../execution_log.md)
 - Logging Protocol: [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)

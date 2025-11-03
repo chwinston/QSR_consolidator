@@ -16,8 +16,15 @@ This project uses a structured execution logging system to maintain context acro
 - What challenges previous agents encountered
 - What specific work YOU should focus on
 - What decisions have already been made
+- **How specifications have EVOLVED from the original PRP**
 
-**This prevents duplicate work and ensures continuity.**
+**CRITICAL - Chronological Priority Rule**:
+- Read execution log entries in chronological order (oldest → newest)
+- When you encounter CONFLICTING information, **ALWAYS prioritize the most recent entry**
+- The project may have evolved significantly from the original PRP requirements
+- Example: PRP says "76 fields" but latest entry shows "91 fields" → Use 91 fields
+
+**This prevents duplicate work, ensures continuity, and keeps you working with current specifications.**
 
 ### 2. During Work (TRACK EVERYTHING)
 

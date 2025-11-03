@@ -1,0 +1,6 @@
+business_name,project_name_count,project_score_sum,project_score_mean,project_score_std,strategic_value_mean,strategic_value_std,kpi_count_mean
+Campsite,6,209.0,34.83,32.08,75.0,67.08,3.0
+ClubOS,7,212.4,30.34,21.2,81.43,66.19,3.0
+ClubWise,7,171.0,24.43,21.86,63.57,67.74,3.0
+EZ_Facility,5,265.0,53.0,85.99,90.0,65.19,3.0
+Jonas Fitness Inc,10,426.4,42.64,45.09,74.0,75.01,3.0

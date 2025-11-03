@@ -96,9 +96,13 @@ class ConfigLoader:
 
             for row in reader:
                 try:
+                    # Handle generated fields (row_number may be empty or '0')
+                    row_num_str = row['input_row_number'].strip()
+                    input_row_number = int(row_num_str) if row_num_str else 0
+
                     mapping = FieldMapping(
                         output_column_name=row['output_column_name'],
-                        input_row_number=int(row['input_row_number']),
+                        input_row_number=input_row_number,
                         input_column_letter=row['input_column_letter'],
                         data_type=row['data_type'],
                         is_required=row['is_required'].lower() in ('true', '1', 'yes'),
@@ -200,8 +204,8 @@ class ConfigLoader:
         if not self.field_mappings:
             return False
 
-        # Check expected field count (76 fields)
-        if len(self.field_mappings) != 76:
+        # Check expected field count (91 fields: 76 original + 12 milestone notes + 3 KPI notes)
+        if len(self.field_mappings) != 91:
             return False
 
         # Check at least one required field
